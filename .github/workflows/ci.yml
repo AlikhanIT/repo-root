@@ -51,7 +51,7 @@ jobs:
             nohup python3 app.py > out.log 2>&1 &
           ENDSSH
 
-      - name: Send email notification (via curl)
+      - name: Send email notification via curl
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -59,11 +59,15 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
-          echo "From: $SMTP_USERNAME" > email.txt
-          echo "To: $EMAIL_TO" >> email.txt
-          echo "Subject: ✅ CI/CD pipeline completed" >> email.txt
-          echo "" >> email.txt
-          echo "Your Flask app was tested and deployed successfully." >> email.txt
+          (echo "Date: $(date -R)";
+          echo "From: $SMTP_USERNAME";
+          echo "To: $EMAIL_TO";
+          echo "Subject: =?UTF-8?B?8J+VjSBDSS9DRCBpipeline completed?=";
+          echo "MIME-Version: 1.0";
+          echo "Content-Type: text/html; charset=UTF-8";
+          echo "Content-Transfer-Encoding: 8bit";
+          echo "";
+          echo "<html><body><h3>✅ CI/CD завершён успешно</h3><p>Flask-приложение прошло тесты и было развернуто.</p></body></html>") > email.txt
 
           curl --url "smtps://$SMTP_HOST:$SMTP_PORT" \
             --ssl-reqd \
@@ -71,4 +75,6 @@ jobs:
             --mail-rcpt "$EMAIL_TO" \
             --upload-file email.txt \
             --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
-            --insecure
+            --insecure --verbose
+
+          rm email.txt
