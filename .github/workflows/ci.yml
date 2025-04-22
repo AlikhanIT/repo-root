@@ -69,4 +69,4 @@ jobs:
             --mail-rcpt "almor.biba@gmail.com" \
             --upload-file email.txt \
             --user "noreply@lokishop.kz:TestMan3002!" \
-            --insecure --verbose && rm email.txt
+            --insecure --verbose && rm email.txt || true
