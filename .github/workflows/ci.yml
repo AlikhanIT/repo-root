@@ -27,7 +27,7 @@ jobs:
           ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<EOF
             pkill -f app.py || true
             rm -rf ~/myapp
-            git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git ~/myapp
+            git clone git@github.com:AlikhanIT/repo-root.git ~/myapp
             cd ~/myapp
             python3 -m venv venv
             source venv/bin/activate
