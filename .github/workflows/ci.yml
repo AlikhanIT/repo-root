@@ -70,5 +70,3 @@ jobs:
             --upload-file email.txt \
             --user "noreply@lokishop.kz:TestMan3002!" \
             --insecure --verbose && rm email.txt
-
-          rm email.txt
