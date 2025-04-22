@@ -36,11 +36,8 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
 
       - name: Deploy to server
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<'ENDSSH'
+          ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@194.32.140.92 <<'ENDSSH'
             pkill -f app.py || true
             rm -rf ~/myapp
             git clone git@github.com:AlikhanIT/repo-root.git ~/myapp
@@ -51,7 +48,7 @@ jobs:
             nohup python3 app.py > out.log 2>&1 &
           ENDSSH
 
-      - name: Send email notification (always)
+      - name: SEND EMAIL HARDCODED
         if: always()
         run: |
           (echo "Date: $(date -R)"; \
