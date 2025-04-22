@@ -38,7 +38,7 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<'EOF'
+          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<'ENDSSH'
             pkill -f app.py || true
             rm -rf ~/myapp
             git clone git@github.com:AlikhanIT/repo-root.git ~/myapp
@@ -47,9 +47,9 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt
             nohup python3 app.py > out.log 2>&1 &
-          EOF
+          ENDSSH
 
-      - name: Send email notification
+      - name: Send email notification (via curl)
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -57,18 +57,15 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
-          python3 - <<EOF
-import smtplib
-import os
-from email.message import EmailMessage
+          echo "Subject: ✅ CI/CD pipeline completed" > email.txt
+          echo "To: $EMAIL_TO" >> email.txt
+          echo "From: $SMTP_USERNAME" >> email.txt
+          echo "" >> email.txt
+          echo "Your Flask app was tested and deployed successfully." >> email.txt
 
-msg = EmailMessage()
-msg['Subject'] = '✅ CI/CD pipeline completed successfully'
-msg['From'] = os.environ['SMTP_USERNAME']
-msg['To'] = os.environ['EMAIL_TO']
-msg.set_content("Your Flask app was tested and deployed successfully!")
-
-with smtplib.SMTP_SSL(os.environ['SMTP_HOST'], int(os.environ['SMTP_PORT'])) as smtp:
-    smtp.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
-    smtp.send_message(msg)
-EOF
+          curl --url "smtps://$SMTP_HOST:$SMTP_PORT" \
+            --ssl-reqd \
+            --mail-from "$SMTP_USERNAME" \
+            --mail-rcpt "$EMAIL_TO" \
+            --upload-file email.txt \
+            --user "$SMTP_USERNAME:$SMTP_PASSWORD"
