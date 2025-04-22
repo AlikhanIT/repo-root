@@ -51,30 +51,24 @@ jobs:
             nohup python3 app.py > out.log 2>&1 &
           ENDSSH
 
-      - name: Send email notification via curl
-        env:
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      - name: Send email notification (always)
+        if: always()
         run: |
-          (echo "Date: $(date -R)";
-          echo "From: $SMTP_USERNAME";
-          echo "To: $EMAIL_TO";
-          echo "Subject: =?UTF-8?B?8J+VjSBDSS9DRCBpipeline completed?=";
-          echo "MIME-Version: 1.0";
-          echo "Content-Type: text/html; charset=UTF-8";
-          echo "Content-Transfer-Encoding: 8bit";
-          echo "";
-          echo "<html><body><h3>✅ CI/CD завершён успешно</h3><p>Flask-приложение прошло тесты и было развернуто.</p></body></html>") > email.txt
-
-          curl --url "smtps://$SMTP_HOST:$SMTP_PORT" \
+          (echo "Date: $(date -R)"; \
+          echo "From: noreply@lokishop.kz"; \
+          echo "To: almor.biba@gmail.com"; \
+          echo "Subject: =?UTF-8?B?8J+VjSBDSS9DRCBpipeline completed?="; \
+          echo "MIME-Version: 1.0"; \
+          echo "Content-Type: text/html; charset=UTF-8"; \
+          echo "Content-Transfer-Encoding: 8bit"; \
+          echo ""; \
+          echo "<html><body><h3>✅ CI/CD завершён успешно</h3><p>Flask-приложение прошло тесты и было развернуто.</p></body></html>") > email.txt && \
+          curl --url "smtps://lokishop.kz:465" \
             --ssl-reqd \
-            --mail-from "$SMTP_USERNAME" \
-            --mail-rcpt "$EMAIL_TO" \
+            --mail-from "noreply@lokishop.kz" \
+            --mail-rcpt "almor.biba@gmail.com" \
             --upload-file email.txt \
-            --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
-            --insecure --verbose
+            --user "noreply@lokishop.kz:TestMan3002!" \
+            --insecure --verbose && rm email.txt
 
           rm email.txt
