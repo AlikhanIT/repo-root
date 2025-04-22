@@ -24,7 +24,9 @@ jobs:
           pip install pytest
 
       - name: Run tests
-        run: pytest
+        run: |
+          export PYTHONPATH=.
+          pytest
 
       - name: Set up SSH key
         run: |
@@ -57,9 +59,9 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
-          echo "Subject: ✅ CI/CD pipeline completed" > email.txt
+          echo "From: $SMTP_USERNAME" > email.txt
           echo "To: $EMAIL_TO" >> email.txt
-          echo "From: $SMTP_USERNAME" >> email.txt
+          echo "Subject: ✅ CI/CD pipeline completed" >> email.txt
           echo "" >> email.txt
           echo "Your Flask app was tested and deployed successfully." >> email.txt
 
@@ -68,4 +70,5 @@ jobs:
             --mail-from "$SMTP_USERNAME" \
             --mail-rcpt "$EMAIL_TO" \
             --upload-file email.txt \
-            --user "$SMTP_USERNAME:$SMTP_PASSWORD"
+            --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
+            --insecure
