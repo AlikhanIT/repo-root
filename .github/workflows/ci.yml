@@ -22,12 +22,26 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@194.32.140.92 <<'ENDSSH'
-            docker stop repo-root-app-1 || true
-            docker rm repo-root-app-1 || true
-            docker system prune -f
-            rm -rf ~/repo-root
-            git clone https://github.com/AlikhanIT/repo-root.git ~/repo-root
-            cd ~/repo-root
+            set -e
+
+            # Установить Docker, если не установлен
+            if ! command -v docker &> /dev/null; then
+              curl -fsSL https://get.docker.com | sudo sh
+              sudo usermod -aG docker $USER
+            fi
+
+            # Установить Docker Compose, если не установлен
+            if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
+            cd ~/repo-root || {
+              git clone https://github.com/AlikhanIT/repo-root.git ~/repo-root
+              cd ~/repo-root
+            }
+
+            git pull
             docker compose down || true
             docker compose up -d --build
           ENDSSH
