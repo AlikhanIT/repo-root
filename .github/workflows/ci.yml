@@ -1,4 +1,4 @@
-name: CI/CD Deploy
+name: CI/CD Deploy with Docker Compose
 
 on:
   push:
@@ -12,22 +12,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
-
-      - name: Run tests
-        run: |
-          export PYTHONPATH=.
-          pytest
-
       - name: Set up SSH key
         run: |
           echo "$SSH_KEY" > key.pem
@@ -35,31 +19,31 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
 
-      - name: Deploy to server
+      - name: Deploy with Docker Compose
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@194.32.140.92 <<'ENDSSH'
-            pkill -f app.py || true
-            rm -rf ~/myapp
-            git clone https://github.com/AlikhanIT/repo-root.git ~/myapp
-            cd ~/myapp
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-            nohup python3 app.py > out.log 2>&1 &
+            docker stop repo-root-app-1 || true
+            docker rm repo-root-app-1 || true
+            docker system prune -f
+            rm -rf ~/repo-root
+            git clone https://github.com/AlikhanIT/repo-root.git ~/repo-root
+            cd ~/repo-root
+            docker compose down || true
+            docker compose up -d --build
           ENDSSH
 
-      - name: SEND EMAIL HARDCODED
+      - name: Send email notification
         if: always()
         run: |
-          (echo "Date: $(date -R)"; \
-          echo "From: noreply@lokishop.kz"; \
-          echo "To: almor.biba@gmail.com"; \
-          echo "Subject: =?UTF-8?B?8J+VjSBDSS9DRCBpipeline completed?="; \
-          echo "MIME-Version: 1.0"; \
-          echo "Content-Type: text/html; charset=UTF-8"; \
-          echo "Content-Transfer-Encoding: 8bit"; \
-          echo ""; \
-          echo "<html><body><h3>✅ CI/CD завершён успешно</h3><p>Flask-приложение прошло тесты и было развернуто.</p></body></html>") > email.txt && \
+          (echo "Date: $(date -R)";
+          echo "From: noreply@lokishop.kz";
+          echo "To: almor.biba@gmail.com";
+          echo "Subject: =?UTF-8?B?8J+VjSBDSS9DRCBpipeline completed?=";
+          echo "MIME-Version: 1.0";
+          echo "Content-Type: text/html; charset=UTF-8";
+          echo "Content-Transfer-Encoding: 8bit";
+          echo "";
+          echo "<html><body><h3>✅ CI/CD завершён успешно</h3><p>Docker Compose перезапущен и проект задеплоен.</p></body></html>") > email.txt && \
           curl --url "smtps://lokishop.kz:465" \
             --ssl-reqd \
             --mail-from "noreply@lokishop.kz" \
