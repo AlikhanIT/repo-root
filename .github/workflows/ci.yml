@@ -40,7 +40,7 @@ jobs:
           ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@194.32.140.92 <<'ENDSSH'
             pkill -f app.py || true
             rm -rf ~/myapp
-            git clone git@github.com:AlikhanIT/repo-root.git ~/myapp
+            git clone https://github.com/AlikhanIT/repo-root.git ~/myapp
             cd ~/myapp
             python3 -m venv venv
             source venv/bin/activate
