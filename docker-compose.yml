@@ -47,7 +47,7 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.10
     volumes:
-      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash:/usr/share/logstash/pipeline
       - ./logs:/usr/share/logstash/app_logs:ro
     depends_on:
       - elasticsearch
